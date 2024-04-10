@@ -1,24 +1,16 @@
-# README
+# HN Blogroll
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+![image](https://github.com/nhdez/hn-blogroll/assets/22510253/6dabd6a0-f5fa-400f-b52e-9996ad63b193)
 
-Things you may want to cover:
+This site is a blogroll based on [revskill's](https://news.ycombinator.com/user?id=revskill) Ask HN thread ["Could you share your personal blog here?"](https://news.ycombinator.com/item?id=36575081)
 
-* Ruby version
+I quickly hacked it together following the thread on HN where over a thousand users were sharing their blogs. Essentially, I now have a curated list of public domain knowledge that could keep me reading forever.
 
-* System dependencies
+A cron job checks the thread every six hours. I plan to add the ability to submit blogs and, hopefully, to edit the descriptions as well (for the blog owners).
 
-* Configuration
+I'm backlogging all the site's suggestions from the HN thread, but if you want to send more ideas or comments, you can write to nelson@hernandez.id
 
-* Database creation
+The stack? Rails 7 + Tabler UI / Gems: Nokogiri, Ransack, Kaminari, Sidekiq.
 
-* Database initialization
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+**The blogroll:** https://dm.hn

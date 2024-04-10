@@ -1,0 +1,4 @@
+refresh_data_job:
+  cron: "0 */6 * * *"
+  class: RefreshDataJob
+  queue: default

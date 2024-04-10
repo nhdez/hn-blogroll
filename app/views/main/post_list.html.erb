@@ -1,0 +1,22 @@
+<table id="last-posts">
+  <thead>
+  <th>Username</th>
+  <th>Title</th>
+  <th>Date</th>
+  </thead>
+  <tbody>
+  <% @last_posts.each do |post| %>
+    <tr>
+      <td>
+        <%= post.username %>
+      </td>
+      <td>
+        <%= link_to post.last_post_title, post.last_post_url, target: :blank %>
+      </td>
+      <td>
+        <%= post.last_post_date %>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

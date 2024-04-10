@@ -1,0 +1,144 @@
+<div class="page-body">
+  <div class="container-xl">
+
+    <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" data-bs-toggle="tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a href="#tabs-hello" class="nav-link active" data-bs-toggle="tab" aria-selected="true" role="tab">🔖</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a href="#tabs-submit" class="nav-link" title="Settings" data-bs-toggle="tab" aria-selected="false" tabindex="-1" role="tab">Submit</a>
+          </li>
+        </ul>
+
+        <div class="card-actions">
+          <%= link_to 'CSV', download_csv_path, class: 'btn btn-sm btn-outline-secondary' %>
+          <%= link_to 'JSON', root_path(format: :json), class: 'btn btn-sm btn-outline-secondary' %>
+          <%= link_to 'OPML', download_opml_path, class: 'btn btn-sm btn-outline-secondary' %>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#modal-submit" class="btn btn-sm btn-outline-warning">&nbsp;?&nbsp;</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="tab-content">
+          <div class="tab-pane active show" id="tabs-hello" role="tabpanel">
+            <div class="d-flex">
+              <a href="/" class="btn btn-sm btn-ghost-rss" style="font-size: large">Hacker News Blogroll</a>
+
+              <div class="ms-auto text-muted d-flex align-items-center">
+                <%= link_to 'Go random! ', random_path, class: 'btn btn-primary', target: '_blank', title: 'Visit a random blog!', data: { 'bs-toggle': 'tooltip', 'bs-placement': 'top' } %>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" id="tabs-submit" role="tabpanel">
+            <p class="markdown">
+              For now, just drop me a line and I will add the blog to the list manually. <code>nelson@hernandez.id</code>
+            </p>
+          </div>
+        </div>
+      </div>
+
+        <div class="card">
+          <div class="card-header">
+              <% if params[:posts].present? %>
+              <%= search_form_for @q, url: root_path, method: :get do |f| %>
+                <%= f.search_field :last_post_title_cont, class: 'form-control', placeholder: 'Search...' %>
+                <%= f.submit hidden: true %>
+                <%= hidden_field_tag :posts, params[:posts] if params[:posts].present? %>
+              <% end %>
+              <% else %>
+                <%= search_form_for @q, url: root_path, method: :get do |f| %>
+                  <%= f.search_field :description_or_hyperlink_cont, class: 'form-control', placeholder: 'Search...' %>
+                  <%= f.submit hidden: true %>
+                <% end %>
+              <% end %>
+            <div class="card-actions">
+              <% if params[:posts].present? %>
+                <%= link_to 'View Blogroll', root_path, class: 'btn btn-vk' %>
+              <% else %>
+                <%= link_to 'View Latest Posts', root_path(posts: 1), class: 'btn btn-rss' %>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="card-body border-bottom py-3">
+            <div class="d-flex">
+              <div class="text-muted d-none d-sm-table-cell">
+                <%= page_entries_info @blogs %>
+              </div>
+              <div class="ms-auto text-muted">
+                <%= paginate @blogs, remote: true %>
+              </div>
+            </div>
+          </div>
+
+          <div id="blog_table" class="table-responsive">
+            <table class="table card-table table-vcenter datatable">
+              <thead>
+              <tr>
+                <th>
+                  <% if params[:posts].present? %>Latest Posts from the Blogroll<% end %>
+                </th>
+                <% unless params[:posts].present? %>
+                  <th class="w-1"><%= sort_link(@q, :username) %></th>
+                  <th><%= sort_link(@q, :karma) %></th>
+                  <th class="d-none d-sm-table-cell"></th>
+                  <th>URL</th>
+                  <th class="w-1 d-none d-sm-table-cell"></th>
+                <% end %>
+              </tr>
+              </thead>
+              <tbody>
+                <% if params[:posts].present? %>
+                  <%= render 'row_last_posts' %>
+                <% else %>
+                  <%= render 'row_full_list' %>
+                <% end %>
+              </tbody>
+            </table>
+
+          </div>
+          <div class="card-footer d-flex align-items-center">
+            <div class="d-none d-sm-table-cell">
+              <%= page_entries_info @blogs %>
+            </div>
+            <ul class="pagination m-0 ms-auto">
+              <%= paginate @blogs, remote: true %>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal modal-blur fade" id="modal-submit" tabindex="-1" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">👋 Hello there!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          This site is a blogroll based on <a href="https://news.ycombinator.com/user?id=revskill" target="_blank">revskill's</a> Ask HN thread
+          <a href="https://news.ycombinator.com/item?id=36575081" target="_blank"><em>"Could you share your personal blog here?"</em></a>
+        </p>
+        <p>
+          I quickly hacked it together following the thread on HN where over a thousand users were sharing their blogs. Essentially, I now have a curated list of public domain knowledge that could keep me reading forever. I thought I might as well put the link out there.
+        </p>
+        <p>
+          A cron job checks the thread every six hours. I plan to add the ability to submit blogs and, hopefully, to edit the descriptions as well (for the blog owners).
+        </p>
+        <p>
+          I'm backlogging all the site's suggestions from the HN <a href="https://news.ycombinator.com/item?id=36605493" target="_blank">thread</a>, but if you want to send more ideas or comments, you can write to <code>nelson@hernandez.id</code>
+        </p>
+        <p>
+          The stack? <strong><span class="text-red">Rails 7</span></strong> + <strong><span class="text-blue">Tabler UI</span></strong> / Gems: Nokogiri, Ransack, Kaminari, Sidekiq.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

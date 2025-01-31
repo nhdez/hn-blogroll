@@ -8,9 +8,9 @@ I quickly hacked it together following the thread on HN where over a thousand us
 
 A cron job checks the thread every six hours. I plan to add the ability to submit blogs and, hopefully, to edit the descriptions as well (for the blog owners).
 
-I'm backlogging all the site's suggestions from the HN thread, but if you want to send more ideas or comments, you can write to nelson@hernandez.id
+I'm backlogging all the site's suggestions from the HN thread, but if you want to send more ideas or comments, you can write to nelson@datapolaris.com
 
 The stack? Rails 7 + Tabler UI / Gems: Nokogiri, Ransack, Kaminari, Sidekiq.
 
 
-**The blogroll:** https://dm.hn
+**The blogroll:** ~~https://dm.hn~~ (I need to redeploy on a new domain name since this one is unfortunately expired :face_in_clouds:) 

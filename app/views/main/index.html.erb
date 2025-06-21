@@ -65,10 +65,18 @@
           <div class="card-body border-bottom py-3">
             <div class="d-flex">
               <div class="text-muted d-none d-sm-table-cell">
-                <%= page_entries_info @blogs %>
+                <% if @view_type == 'posts' %>
+                  <%= page_entries_info @posts %>
+                <% else %>
+                  <%= page_entries_info @blogs %>
+                <% end %>
               </div>
               <div class="ms-auto text-muted">
-                <%= paginate @blogs, remote: true %>
+                <% if @view_type == 'posts' %>
+                  <%= paginate @posts, remote: true %>
+                <% else %>
+                  <%= paginate @blogs, remote: true %>
+                <% end %>
               </div>
             </div>
           </div>
@@ -101,10 +109,18 @@
           </div>
           <div class="card-footer d-flex align-items-center">
             <div class="d-none d-sm-table-cell">
-              <%= page_entries_info @blogs %>
+              <% if @view_type == 'posts' %>
+                <%= page_entries_info @posts %>
+              <% else %>
+                <%= page_entries_info @blogs %>
+              <% end %>
             </div>
             <ul class="pagination m-0 ms-auto">
-              <%= paginate @blogs, remote: true %>
+              <% if @view_type == 'posts' %>
+                <%= paginate @posts, remote: true %>
+              <% else %>
+                <%= paginate @blogs, remote: true %>
+              <% end %>
             </ul>
           </div>
         </div>

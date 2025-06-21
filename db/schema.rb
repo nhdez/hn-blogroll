@@ -10,10 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_07_06_155837) do
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
-
+ActiveRecord::Schema[7.0].define(version: 2025_06_21_231800) do
   create_table "blogs", force: :cascade do |t|
     t.string "username"
     t.text "description"
@@ -30,4 +27,25 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_06_155837) do
     t.datetime "online_last_check"
   end
 
+  create_table "posts", force: :cascade do |t|
+    t.integer "blog_id", null: false
+    t.string "title", null: false
+    t.string "url", null: false
+    t.text "content"
+    t.text "summary"
+    t.datetime "published_at"
+    t.string "guid"
+    t.string "unique_key", null: false
+    t.integer "word_count"
+    t.string "author"
+    t.json "tags", default: []
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["blog_id", "published_at"], name: "index_posts_on_blog_id_and_published_at"
+    t.index ["blog_id"], name: "index_posts_on_blog_id"
+    t.index ["published_at"], name: "index_posts_on_published_at"
+    t.index ["unique_key"], name: "index_posts_on_unique_key", unique: true
+  end
+
+  add_foreign_key "posts", "blogs"
 end

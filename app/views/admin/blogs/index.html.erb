@@ -1,0 +1,412 @@
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">
+          🛠 Admin: Blog Management
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-print-none">
+        <%= link_to "← Back to Site", root_path, class: "btn btn-ghost-dark" %>
+        <%= link_to "📊 Sidekiq", "/sidekiq", class: "btn btn-outline-primary", target: "_blank" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="container-xl">
+    
+    <!-- Statistics Cards -->
+    <div class="row row-deck row-cards mb-3">
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Pending Review</div>
+              <div class="ms-auto lh-1">
+                <span class="badge bg-yellow-lt">⏳</span>
+              </div>
+            </div>
+            <div class="h1 m-0"><%= @stats[:pending] %></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Approved</div>
+              <div class="ms-auto lh-1">
+                <span class="badge bg-green-lt">✅</span>
+              </div>
+            </div>
+            <div class="h1 m-0"><%= @stats[:approved] %></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Online Blogs</div>
+              <div class="ms-auto lh-1">
+                <span class="badge bg-blue-lt">🌐</span>
+              </div>
+            </div>
+            <div class="h1 m-0"><%= @stats[:online] %></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-sm-6 col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="subheader">Recent Submissions</div>
+              <div class="ms-auto lh-1">
+                <span class="badge bg-purple-lt">📨</span>
+              </div>
+            </div>
+            <div class="h1 m-0"><%= @stats[:recent_submissions] %></div>
+            <div class="d-flex mb-2">
+              <div class="flex-fill">
+                <div class="progress progress-xs">
+                  <div class="progress-bar bg-purple" style="width: <%= [@stats[:recent_submissions] * 10, 100].min %>%"></div>
+                </div>
+              </div>
+              <div class="ms-2">
+                <span class="text-muted">past week</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Blog Submissions</h3>
+        <div class="card-actions">
+          <!-- Filter Tabs -->
+          <div class="nav nav-pills nav-pill-sm">
+            <%= link_to "All (#{@stats[:total]})", admin_blogs_path, 
+                class: "nav-link #{'active' if @filter == 'all'}" %>
+            <%= link_to "Pending (#{@stats[:pending]})", admin_blogs_path(filter: 'pending'), 
+                class: "nav-link #{'active' if @filter == 'pending'}" %>
+            <%= link_to "Approved (#{@stats[:approved]})", admin_blogs_path(filter: 'approved'), 
+                class: "nav-link #{'active' if @filter == 'approved'}" %>
+            <%= link_to "Rejected (#{@stats[:rejected]})", admin_blogs_path(filter: 'rejected'), 
+                class: "nav-link #{'active' if @filter == 'rejected'}" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Actions -->
+      <div class="card-body border-bottom py-3">
+        <div class="d-flex">
+          <div class="text-muted">
+            Show
+            <div class="mx-2 d-inline-block">
+              <%= search_form_for @q, url: admin_blogs_path, method: :get, local: true do |f| %>
+                <%= f.search_field :username_or_description_or_hyperlink_or_submitter_name_or_submitter_email_cont, 
+                    class: 'form-control form-control-sm', placeholder: 'Search blogs...', value: params.dig(:q, :username_or_description_or_hyperlink_or_submitter_name_or_submitter_email_cont) %>
+                <%= hidden_field_tag :filter, @filter %>
+              <% end %>
+            </div>
+            entries
+          </div>
+          <div class="ms-auto text-muted">
+            <%= paginate @blogs %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk Actions (only for pending) -->
+      <% if @filter == 'pending' && @blogs.any? %>
+        <div class="card-body border-bottom py-2">
+          <%= form_with url: bulk_approve_admin_blogs_path, method: :post, local: true, id: 'bulk-actions-form' do |f| %>
+            <div class="d-flex align-items-center">
+              <label class="form-check">
+                <input class="form-check-input" type="checkbox" id="select-all">
+                <span class="form-check-label">Select All</span>
+              </label>
+              
+              <div class="ms-3">
+                <button type="submit" name="action" value="approve" class="btn btn-sm btn-success" disabled id="bulk-approve-btn">
+                  ✅ Approve Selected
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" disabled id="bulk-reject-btn" data-bs-toggle="modal" data-bs-target="#bulk-reject-modal">
+                  ❌ Reject Selected
+                </button>
+              </div>
+              
+              <div class="ms-auto text-muted">
+                <span id="selected-count">0</span> selected
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Blog List -->
+      <div class="table-responsive">
+        <table class="table card-table table-vcenter datatable">
+          <thead>
+            <tr>
+              <% if @filter == 'pending' %>
+                <th class="w-1">
+                  <!-- Checkbox header handled by JS -->
+                </th>
+              <% end %>
+              <th>Blog</th>
+              <th>Submitter</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th class="w-1">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @blogs.each do |blog| %>
+              <tr>
+                <% if @filter == 'pending' %>
+                  <td>
+                    <label class="form-check">
+                      <input class="form-check-input row-select" type="checkbox" name="blog_ids[]" value="<%= blog.id %>">
+                    </label>
+                  </td>
+                <% end %>
+                
+                <td>
+                  <div class="d-flex align-items-center">
+                    <% require 'icodi' %>
+                    <% icon = Icodi.new(blog.username || blog.submitter_name || 'Anonymous') %>
+                    <div class="avatar avatar-sm me-3">
+                      <%= raw icon.render %>
+                    </div>
+                    <div>
+                      <div class="font-weight-medium">
+                        <% if blog.username.present? %>
+                          <a href="https://news.ycombinator.com/user?id=<%= blog.username %>" target="_blank">
+                            <%= blog.username %>
+                          </a>
+                        <% else %>
+                          <%= blog.submitter_display_name %>
+                        <% end %>
+                      </div>
+                      <div class="text-muted">
+                        <a href="<%= blog.hyperlink %>" target="_blank" class="text-reset">
+                          <%= truncate(blog.hyperlink, length: 40) %>
+                        </a>
+                      </div>
+                      <% if blog.description.present? %>
+                        <div class="text-muted small">
+                          <%= truncate(blog.description, length: 80) %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </td>
+                
+                <td>
+                  <div>
+                    <%= blog.submitter_name %>
+                    <% if blog.submitter_email.present? %>
+                      <br><small class="text-muted"><%= blog.submitter_email %></small>
+                    <% end %>
+                  </div>
+                </td>
+                
+                <td>
+                  <span class="badge <%= blog.status_badge_class %>">
+                    <%= blog.approval_status.titleize %>
+                  </span>
+                  <% if blog.rss.present? %>
+                    <span class="badge bg-blue-lt ms-1">RSS</span>
+                  <% end %>
+                  <% if blog.is_online %>
+                    <span class="badge bg-green-lt ms-1">Online</span>
+                  <% end %>
+                </td>
+                
+                <td>
+                  <% if blog.submitted_at %>
+                    <% submitted_date = blog.submitted_at.is_a?(String) ? Time.parse(blog.submitted_at) : blog.submitted_at %>
+                    <%= submitted_date.strftime("%b %d, %Y") %>
+                    <br><small class="text-muted"><%= blog.days_since_submission %> days ago</small>
+                  <% else %>
+                    <span class="text-muted">Legacy</span>
+                  <% end %>
+                </td>
+                
+                <td>
+                  <div class="btn-list flex-nowrap">
+                    <%= link_to "👁", admin_blog_path(blog), class: "btn btn-sm btn-outline-primary", title: "View Details" %>
+                    
+                    <% if blog.pending? %>
+                      <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                          Actions
+                        </button>
+                        <div class="dropdown-menu">
+                          <%= link_to "✅ Quick Approve", approve_admin_blog_path(blog), method: :patch, 
+                              class: "dropdown-item", 
+                              data: { confirm: "Approve #{blog.submitter_display_name}'s blog?" } %>
+                          
+                          <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#reject-modal-<%= blog.id %>">
+                            ❌ Reject
+                          </a>
+                          
+                          <div class="dropdown-divider"></div>
+                          
+                          <%= link_to "✏️ Edit", edit_admin_blog_path(blog), class: "dropdown-item" %>
+                        </div>
+                      </div>
+                    <% else %>
+                      <%= link_to "✏️", edit_admin_blog_path(blog), class: "btn btn-sm btn-outline-secondary", title: "Edit" %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Individual Reject Modal -->
+              <% if blog.pending? %>
+                <div class="modal fade" id="reject-modal-<%= blog.id %>" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <%= form_with url: reject_admin_blog_path(blog), method: :patch, local: true do |f| %>
+                        <div class="modal-header">
+                          <h5 class="modal-title">Reject Blog Submission</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p>You are about to reject <strong><%= blog.submitter_display_name %></strong>'s blog submission.</p>
+                          
+                          <div class="mb-3">
+                            <%= f.label :rejection_reason, "Rejection Reason", class: "form-label" %>
+                            <%= f.text_area :rejection_reason, class: "form-control", rows: 3, 
+                                placeholder: "Please provide a reason for rejection...", 
+                                value: "Blog does not meet our submission guidelines" %>
+                          </div>
+                          
+                          <div class="mb-3">
+                            <%= f.label :admin_notes, "Admin Notes (Internal)", class: "form-label" %>
+                            <%= f.text_area :admin_notes, class: "form-control", rows: 2, 
+                                placeholder: "Internal notes (not sent to submitter)..." %>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <%= f.submit "Reject Blog", class: "btn btn-danger" %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer d-flex align-items-center">
+        <p class="m-0 text-muted">
+          <% if @blogs.respond_to?(:offset_value) && @blogs.respond_to?(:total_count) %>
+            Showing <%= @blogs.offset_value + 1 %> to <%= [@blogs.offset_value + @blogs.length, @blogs.total_count].min %> of <%= @blogs.total_count %> entries
+          <% else %>
+            Showing <%= @blogs.length %> entries
+          <% end %>
+        </p>
+        <ul class="pagination m-0 ms-auto">
+          <%= paginate @blogs %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Reject Modal -->
+<div class="modal fade" id="bulk-reject-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <%= form_with url: bulk_reject_admin_blogs_path, method: :post, local: true, id: 'bulk-reject-form' do |f| %>
+        <div class="modal-header">
+          <h5 class="modal-title">Bulk Reject Blogs</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>You are about to reject <span id="bulk-reject-count">0</span> blog submissions.</p>
+          
+          <div class="mb-3">
+            <%= f.label :bulk_rejection_reason, "Rejection Reason", class: "form-label" %>
+            <%= f.text_area :bulk_rejection_reason, class: "form-control", rows: 3, 
+                placeholder: "Reason for bulk rejection...", 
+                value: "Does not meet submission guidelines" %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <%= f.submit "Reject Selected Blogs", class: "btn btn-danger" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAll = document.getElementById('select-all');
+  const rowSelects = document.querySelectorAll('.row-select');
+  const bulkApproveBtn = document.getElementById('bulk-approve-btn');
+  const bulkRejectBtn = document.getElementById('bulk-reject-btn');
+  const selectedCount = document.getElementById('selected-count');
+  const bulkRejectCount = document.getElementById('bulk-reject-count');
+  
+  function updateBulkActions() {
+    const checkedBoxes = document.querySelectorAll('.row-select:checked');
+    const count = checkedBoxes.length;
+    
+    if (selectedCount) selectedCount.textContent = count;
+    if (bulkRejectCount) bulkRejectCount.textContent = count;
+    
+    const hasSelection = count > 0;
+    if (bulkApproveBtn) bulkApproveBtn.disabled = !hasSelection;
+    if (bulkRejectBtn) bulkRejectBtn.disabled = !hasSelection;
+    
+    // Update hidden inputs for bulk reject form
+    const bulkRejectForm = document.getElementById('bulk-reject-form');
+    if (bulkRejectForm) {
+      // Clear existing hidden inputs
+      bulkRejectForm.querySelectorAll('input[name="blog_ids[]"]').forEach(input => input.remove());
+      
+      // Add selected blog IDs
+      checkedBoxes.forEach(checkbox => {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'blog_ids[]';
+        hiddenInput.value = checkbox.value;
+        bulkRejectForm.appendChild(hiddenInput);
+      });
+    }
+  }
+  
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      rowSelects.forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+      updateBulkActions();
+    });
+  }
+  
+  rowSelects.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActions);
+  });
+  
+  // Initial update
+  updateBulkActions();
+});
+</script>

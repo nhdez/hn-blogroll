@@ -10,6 +10,14 @@ Rails.application.routes.draw do
   get 'posts', to: 'posts#index'
   get 'posts/:id', to: 'posts#show', as: 'post'
   
+  # Blog submission workflow
+  resources :submissions, only: [:new, :create, :show] do
+    collection do
+      get :guidelines
+    end
+  end
+  get 'submit', to: 'submissions#new'
+  
   resources :blogs, only: [:create, :show, :index] do
     resources :posts, only: [:index, :show]
   end
@@ -24,6 +32,8 @@ Rails.application.routes.draw do
   end
   
   namespace :admin do
+    root 'blogs#index'
+    
     resources :blogs do
       member do
         patch :approve
@@ -32,7 +42,19 @@ Rails.application.routes.draw do
         post :check_status
         post :update_karma
       end
+      
+      collection do
+        get :pending
+        get :approved
+        get :rejected
+        post :bulk_approve
+        post :bulk_reject
+      end
     end
+    
     resources :posts, only: [:index, :show, :destroy]
+    
+    # Admin dashboard
+    get 'dashboard', to: 'dashboard#index'
   end
 end

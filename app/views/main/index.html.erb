@@ -32,9 +32,37 @@
           </div>
 
           <div class="tab-pane" id="tabs-submit" role="tabpanel">
-            <p class="markdown">
-              For now, just drop me a line and I will add the blog to the list manually. <code>nelson@hernandez.id</code>
-            </p>
+            <div class="d-flex align-items-center">
+              <div>
+                <h4>Submit Your Blog</h4>
+                <p class="text-muted mb-0">
+                  Add your personal blog to the HN Blogroll for others to discover.
+                </p>
+              </div>
+              <div class="ms-auto">
+                <%= link_to "Submit Blog", new_submission_path, class: "btn btn-primary" %>
+              </div>
+            </div>
+            
+            <hr class="my-3">
+            
+            <div class="row">
+              <div class="col-md-6">
+                <h5>📝 Quick Guidelines</h5>
+                <ul class="text-muted">
+                  <li>Personal blogs only</li>
+                  <li>Tech, programming, or entrepreneurship focus</li>
+                  <li>Regular updates preferred</li>
+                  <li>Include RSS feed for auto-updates</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h5>⚡ Fast Review</h5>
+                <p class="text-muted">
+                  We review submissions within 3-5 business days. You'll receive an email notification with our decision.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

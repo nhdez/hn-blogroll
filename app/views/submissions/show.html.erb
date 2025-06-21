@@ -1,0 +1,140 @@
+<div class="page-body">
+  <div class="container-xl">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        
+        <div class="alert <%= @submission_status[:class] %>">
+          <h4 class="alert-title"><%= @submission_status[:title] %></h4>
+          <div class="text-muted"><%= @submission_status[:message] %></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📋 Submission Details</h3>
+            <div class="card-actions">
+              <span class="badge <%= @blog.status_badge_class %>"><%= @blog.approval_status.titleize %></span>
+            </div>
+          </div>
+          <div class="card-body">
+            
+            <div class="row">
+              <div class="col-md-6">
+                <dl class="row">
+                  <dt class="col-5">Submitted by:</dt>
+                  <dd class="col-7"><%= @blog.submitter_display_name %></dd>
+                  
+                  <dt class="col-5">Email:</dt>
+                  <dd class="col-7"><%= @blog.submitter_email %></dd>
+                  
+                  <% if @blog.username.present? %>
+                    <dt class="col-5">HN Username:</dt>
+                    <dd class="col-7">
+                      <a href="https://news.ycombinator.com/user?id=<%= @blog.username %>" target="_blank"><%= @blog.username %></a>
+                    </dd>
+                  <% end %>
+                  
+                  <dt class="col-5">Submitted:</dt>
+                  <dd class="col-7">
+                    <%= @blog.submitted_at&.strftime("%B %d, %Y at %I:%M %p") %>
+                    <% if @blog.days_since_submission %>
+                      <small class="text-muted">(<%= @blog.days_since_submission %> days ago)</small>
+                    <% end %>
+                  </dd>
+                </dl>
+              </div>
+              
+              <div class="col-md-6">
+                <dl class="row">
+                  <dt class="col-5">Blog URL:</dt>
+                  <dd class="col-7">
+                    <a href="<%= @blog.hyperlink %>" target="_blank" class="text-truncate d-block"><%= @blog.hyperlink %></a>
+                  </dd>
+                  
+                  <% if @blog.rss.present? %>
+                    <dt class="col-5">RSS Feed:</dt>
+                    <dd class="col-7">
+                      <a href="<%= @blog.rss %>" target="_blank" class="text-truncate d-block"><%= @blog.rss %></a>
+                    </dd>
+                  <% end %>
+                  
+                  <% if @blog.reviewed_at.present? %>
+                    <dt class="col-5">Reviewed:</dt>
+                    <dd class="col-7">
+                      <%= @blog.reviewed_at.strftime("%B %d, %Y at %I:%M %p") %>
+                      <% if @blog.reviewed_by.present? %>
+                        <small class="text-muted">by <%= @blog.reviewed_by %></small>
+                      <% end %>
+                    </dd>
+                  <% end %>
+                </dl>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <h5>Blog Description</h5>
+              <p class="text-muted"><%= @blog.description %></p>
+            </div>
+
+            <% if @blog.admin_notes.present? %>
+              <div class="mt-3">
+                <h5>Admin Notes</h5>
+                <div class="alert alert-info">
+                  <%= simple_format(@blog.admin_notes) %>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @blog.rejection_reason.present? %>
+              <div class="mt-3">
+                <h5>Rejection Reason</h5>
+                <div class="alert alert-danger">
+                  <%= simple_format(@blog.rejection_reason) %>
+                </div>
+              </div>
+            <% end %>
+
+          </div>
+          
+          <div class="card-footer">
+            <div class="d-flex">
+              <%= link_to "← Back to Blogroll", root_path, class: "btn btn-outline-primary" %>
+              
+              <div class="ms-auto">
+                <% if @blog.approved? %>
+                  <%= link_to "View in Blogroll", blog_path(@blog), class: "btn btn-success" %>
+                <% elsif @blog.pending? %>
+                  <span class="text-muted">⏳ Awaiting review...</span>
+                <% else %>
+                  <%= link_to "Submit New Blog", new_submission_path, class: "btn btn-primary" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <% if @blog.approved? && @blog.posts.any? %>
+          <div class="card mt-4">
+            <div class="card-header">
+              <h4 class="card-title">📚 Recent Posts</h4>
+            </div>
+            <div class="card-body">
+              <% @blog.posts.recent.limit(5).each do |post| %>
+                <div class="mb-2">
+                  <a href="<%= post.url %>" target="_blank" class="text-decoration-none">
+                    <strong><%= post.title %></strong>
+                  </a>
+                  <br>
+                  <small class="text-muted">
+                    <%= post.published_at&.strftime("%B %d, %Y") %>
+                    <% if post.word_count %>• <%= post.word_count %> words<% end %>
+                  </small>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+      </div>
+    </div>
+  </div>
+</div>

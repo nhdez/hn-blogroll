@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_06_21_231800) do
+ActiveRecord::Schema[7.0].define(version: 2025_06_21_233812) do
   create_table "blogs", force: :cascade do |t|
     t.string "username"
     t.text "description"
@@ -25,6 +25,16 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_21_231800) do
     t.boolean "is_approved", default: false
     t.boolean "is_online"
     t.datetime "online_last_check"
+    t.datetime "submitted_at"
+    t.text "rejection_reason"
+    t.text "admin_notes"
+    t.string "submitter_email"
+    t.string "submitter_name"
+    t.string "approval_status", default: "pending"
+    t.datetime "reviewed_at"
+    t.string "reviewed_by"
+    t.index ["approval_status"], name: "index_blogs_on_approval_status"
+    t.index ["submitted_at"], name: "index_blogs_on_submitted_at"
   end
 
   create_table "posts", force: :cascade do |t|

@@ -1,0 +1,133 @@
+<div class="page-body">
+  <div class="container-xl">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📝 Submit Your Blog to HN Blogroll</h3>
+          </div>
+          <div class="card-body">
+            
+            <div class="alert alert-info">
+              <h4 class="alert-title">Submission Guidelines</h4>
+              <ul class="mb-0">
+                <li>Your blog should be personal and regularly updated</li>
+                <li>Content should be original and related to technology, programming, or entrepreneurship</li>
+                <li>No promotional or commercial blogs</li>
+                <li>Provide an RSS feed URL for automatic post updates</li>
+                <li>Use your real HackerNews username if you have one</li>
+              </ul>
+            </div>
+
+            <%= form_with(model: @blog, url: submissions_path, local: true) do |form| %>
+              <% if @blog.errors.any? %>
+                <div class="alert alert-danger">
+                  <h4 class="alert-title">Please fix the following errors:</h4>
+                  <ul class="mb-0">
+                    <% @blog.errors.full_messages.each do |message| %>
+                      <li><%= message %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <%= form.label :submitter_name, class: "form-label required" %>
+                    <%= form.text_field :submitter_name, class: "form-control", placeholder: "Your full name", required: true %>
+                    <small class="form-hint">This will be used for communication purposes</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <%= form.label :submitter_email, "Email Address", class: "form-label required" %>
+                    <%= form.email_field :submitter_email, class: "form-control", placeholder: "your@email.com", required: true %>
+                    <small class="form-hint">We'll notify you about the review status</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <%= form.label :username, "HackerNews Username", class: "form-label" %>
+                    <%= form.text_field :username, class: "form-control", placeholder: "your_hn_username" %>
+                    <small class="form-hint">Your username on news.ycombinator.com (if you have one)</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <%= form.label :hyperlink, "Blog URL", class: "form-label required" %>
+                    <%= form.url_field :hyperlink, class: "form-control", placeholder: "https://yourblog.com", required: true %>
+                    <small class="form-hint">The main URL of your blog</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <%= form.label :rss, "RSS Feed URL", class: "form-label" %>
+                <%= form.url_field :rss, class: "form-control", placeholder: "https://yourblog.com/feed.xml" %>
+                <small class="form-hint">
+                  Optional but recommended. We'll automatically fetch your latest posts.
+                  <br>Common paths: /feed, /rss, /feed.xml, /rss.xml, /atom.xml
+                </small>
+              </div>
+
+              <div class="mb-3">
+                <%= form.label :description, "Blog Description", class: "form-label required" %>
+                <%= form.text_area :description, class: "form-control", rows: 4, placeholder: "Describe your blog, its focus, and what readers can expect to find...", required: true, maxlength: 500 %>
+                <small class="form-hint">10-500 characters. Tell us what your blog is about.</small>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="guidelines_agreement" required>
+                <label class="form-check-label" for="guidelines_agreement">
+                  I confirm that my blog meets the submission guidelines and I own the content
+                </label>
+              </div>
+
+              <div class="form-footer">
+                <%= form.submit "Submit Blog for Review", class: "btn btn-primary" %>
+                <%= link_to "Cancel", root_path, class: "btn btn-link" %>
+              </div>
+            <% end %>
+
+          </div>
+        </div>
+
+        <div class="card mt-4">
+          <div class="card-header">
+            <h4 class="card-title">🤔 What happens next?</h4>
+          </div>
+          <div class="card-body">
+            <div class="steps">
+              <div class="step-item">
+                <div class="step-counter">1</div>
+                <div class="step-display">
+                  <h4 class="step-title">Review Process</h4>
+                  <div class="step-description">Our team will review your blog within 3-5 business days</div>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-counter">2</div>
+                <div class="step-display">
+                  <h4 class="step-title">Email Notification</h4>
+                  <div class="step-description">You'll receive an email with the decision and any feedback</div>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-counter">3</div>
+                <div class="step-display">
+                  <h4 class="step-title">Go Live</h4>
+                  <div class="step-description">If approved, your blog will appear in the blogroll and we'll start fetching your posts</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

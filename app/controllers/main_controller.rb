@@ -5,22 +5,36 @@ include OpmlParser
 class MainController < ApplicationController
 
   def index
+    cache_key = "main_index_#{params[:posts]}_#{params[:q]&.to_h}_#{params[:page]}"
+    
     if params[:posts].present? && params[:posts] == '1'
-      @q =  Blog.where(is_approved: true).where.not(last_post_title: nil).ransack(params[:q])
-      @blogs = @q.result.page(params[:page]).order(Arel.sql("COALESCE(last_post_date, '#{2.weeks.ago.to_s(:db)}') desc"))
+      # Show recent posts view
+      @q = Post.joins(:blog).where(blogs: { is_approved: true }).ransack(params[:q])
+      @posts = @q.result(distinct: true).includes(:blog).recent.page(params[:page]).per(20)
+      @view_type = 'posts'
     else
-      @q = Blog.where(is_approved: true).ransack(params[:q])
-      @blogs = @q.result.page(params[:page]).per(16).order(username: :asc)
+      # Show blogs view
+      @q = Blog.approved.ransack(params[:q])
+      @blogs = @q.result.includes(:posts).page(params[:page]).per(16).order(username: :asc)
+      @view_type = 'blogs'
     end
 
     respond_to do |format|
       format.html
-      format.json { render json: @blogs }
+      format.json do
+        Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+          if @view_type == 'posts'
+            @posts.as_json(include: { blog: { only: [:id, :username, :hyperlink, :domain] } })
+          else
+            @blogs.as_json(include: { posts: { only: [:id, :title, :url, :published_at] } })
+          end
+        end
+      end
     end
   end
 
   def search
-    @q = Blog.ransack(params[:q])
+    @q = Blog.approved.ransack(params[:q])
     @blogs = @q.result(distinct: true)
 
     respond_to do |format|
@@ -29,25 +43,43 @@ class MainController < ApplicationController
   end
 
   def random_redirect
-    record = Blog.order("RANDOM()").first
-    redirect_to record.hyperlink, allow_other_host: true
+    blog = Blog.approved.online.order("RANDOM()").first
+    blog ||= Blog.approved.order("RANDOM()").first
+    
+    if blog
+      redirect_to blog.hyperlink, allow_other_host: true
+    else
+      redirect_to root_path, alert: 'No blogs available'
+    end
   end
 
   def download_csv
-    @data = Blog.all
+    @data = Blog.approved.includes(:posts)
 
     csv_data = CSV.generate(headers: true) do |csv|
-      csv << ['Username', 'HN Karma', 'Description', 'Hyperlink', 'RSS Feed', 'Last Post Title', 'Last Post URL', 'Last Post Date']
+      csv << ['Username', 'HN Karma', 'Description', 'Hyperlink', 'RSS Feed', 'Posts Count', 'Last Post Title', 'Last Post URL', 'Last Post Date', 'Online Status']
       @data.each do |blog|
-        csv << [blog.username, blog.karma, blog.description, blog.hyperlink, blog.rss, blog.last_post_title, blog.last_post_url, blog.last_post_date]
+        latest_post = blog.latest_post
+        csv << [
+          blog.username, 
+          blog.karma, 
+          blog.description, 
+          blog.hyperlink, 
+          blog.rss, 
+          blog.posts_count,
+          latest_post&.title,
+          latest_post&.url,
+          latest_post&.published_at,
+          blog.is_online ? 'Online' : 'Offline'
+        ]
       end
     end
 
-    send_data csv_data, type: 'text/csv', filename: 'blogroll_data.csv'
+    send_data csv_data, type: 'text/csv', filename: "hn_blogroll_#{Date.current}.csv"
   end
 
   def download_opml
-    blogs = Blog.where.not(last_post_title: nil)
+    blogs = Blog.approved.with_rss
 
     outlines = blogs.map do |blog|
       feed = {
@@ -55,7 +87,7 @@ class MainController < ApplicationController
         title: blog.username || 'N/A',
         type: 'rss',
         xmlUrl: blog.rss,
-        htmlUrl: blog.rss
+        htmlUrl: blog.hyperlink
       }
       OpmlParser::Outline.new(feed)
     end
@@ -65,9 +97,12 @@ class MainController < ApplicationController
   end
 
   def execute_services
-    RefreshDataService.new.call
-    FetchOpmlDataService.new.call
-    FetchLatestPostsService.new.call
-    UpdateKarmaService.new.call
+    # Queue background jobs instead of running services directly
+    FetchHnDataJob.perform_async
+    UpdateBlogPostsJob.perform_async
+    UpdateKarmaJob.perform_async
+    CheckBlogStatusJob.perform_async
+    
+    render json: { status: 'success', message: 'Background jobs queued successfully' }
   end
 end

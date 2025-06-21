@@ -1,4 +1,20 @@
-refresh_data_job:
-  cron: "0 */6 * * *"
-  class: RefreshDataJob
-  queue: default
+# Sidekiq scheduled jobs configuration
+fetch_hn_data:
+  cron: '0 */6 * * *'  # Every 6 hours
+  class: FetchHnDataJob
+  description: "Fetch new blogs from HackerNews thread"
+
+update_blog_posts:
+  cron: '0 2 * * *'    # Daily at 2 AM
+  class: UpdateBlogPostsJob
+  description: "Fetch new posts from all blog RSS feeds"
+
+update_karma:
+  cron: '0 4 * * 0'    # Weekly on Sunday at 4 AM
+  class: UpdateKarmaJob
+  description: "Update HN karma for all blog authors"
+
+check_blog_status:
+  cron: '0 6 * * 1'    # Weekly on Monday at 6 AM
+  class: CheckBlogStatusJob
+  description: "Check if blog URLs are still accessible"

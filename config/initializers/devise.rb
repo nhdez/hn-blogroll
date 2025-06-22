@@ -268,6 +268,19 @@ Devise.setup do |config|
   # The default HTTP method used to sign out a resource. Default is :delete.
   config.sign_out_via = :delete
 
+  # ==> Mailer Configuration
+  # Configure the e-mail address which will be shown in Devise::Mailer,
+  # note that it will be overwritten if you use your own mailer class
+  # with default "from" parameter.
+  config.mailer_sender = 'noreply@hnblogroll.com'
+
+  # Configure the class responsible to send e-mails.
+  # config.mailer = 'Devise::Mailer'
+
+  # ==> Rails eager loading fix for production
+  # Ensure Devise mailer is not eagerly loaded in production to avoid Zeitwerk conflicts
+  config.reload_routes = false
+
   # ==> OmniAuth
   # Add a new OmniAuth provider. Check the wiki for more information on setting
   # up on your models and hooks.

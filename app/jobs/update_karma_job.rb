@@ -1,5 +1,6 @@
-class UpdateKarmaJob < ApplicationJob
-  queue_as :default
+class UpdateKarmaJob
+  include Sidekiq::Worker
+  sidekiq_options queue: :default, retry: 3
   
   def perform(blog_id = nil)
     blogs = blog_id ? [Blog.find(blog_id)] : Blog.approved
@@ -9,8 +10,8 @@ class UpdateKarmaJob < ApplicationJob
         KarmaUpdater.new(blog).update_karma
         sleep(0.5) # Be respectful to HN API
       rescue StandardError => e
-        logger.error "Failed to update karma for blog #{blog.id} (#{blog.username}): #{e.message}"
-        logger.error e.backtrace.join("\n")
+        Rails.logger.error "Failed to update karma for blog #{blog.id} (#{blog.username}): #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         next
       end
     end

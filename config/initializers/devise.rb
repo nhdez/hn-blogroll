@@ -269,8 +269,9 @@ Devise.setup do |config|
   config.sign_out_via = :delete
 
   # ==> Mailer Configuration
-  # Mailer functionality disabled - using admin-only authentication
-  config.skip_session_storage = [:http_auth]
+  # Use stub mailer to prevent Zeitwerk issues while satisfying Devise requirements
+  config.mailer_sender = 'noreply@hnblogroll.com'
+  config.mailer = 'Devise::Mailer'
 
   # ==> OmniAuth
   # Add a new OmniAuth provider. Check the wiki for more information on setting

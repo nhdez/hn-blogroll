@@ -16,6 +16,14 @@
           <%= link_to 'CSV', download_csv_path, class: 'btn btn-sm btn-outline-secondary' %>
           <%= link_to 'JSON', root_path(format: :json), class: 'btn btn-sm btn-outline-secondary' %>
           <%= link_to 'OPML', download_opml_path, class: 'btn btn-sm btn-outline-secondary' %>
+          <% if user_signed_in? %>
+            <% if current_user.admin? %>
+              <%= link_to 'Admin', admin_blogs_path, class: 'btn btn-sm btn-outline-primary' %>
+            <% end %>
+            <%= link_to 'Logout', destroy_user_session_path, method: :delete, class: 'btn btn-sm btn-outline-secondary' %>
+          <% else %>
+            <%= link_to 'Admin Login', new_user_session_path, class: 'btn btn-sm btn-outline-primary' %>
+          <% end %>
           <a href="#" data-bs-toggle="modal" data-bs-target="#modal-submit" class="btn btn-sm btn-outline-warning">&nbsp;?&nbsp;</a>
         </div>
       </div>

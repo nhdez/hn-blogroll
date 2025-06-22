@@ -1,3 +1,6 @@
+require 'net/http'
+require 'timeout'
+
 class BlogStatusChecker
   include HTTParty
   
@@ -66,7 +69,7 @@ class BlogStatusChecker
     Rails.logger.debug "Status check for #{url}: #{response.code} - #{success ? 'online' : 'offline'}"
     
     success
-  rescue Net::TimeoutError, Net::OpenTimeout, Net::ReadTimeout => e
+  rescue Timeout::Error, Net::OpenTimeout, Net::ReadTimeout => e
     Rails.logger.warn "Timeout checking #{url}: #{e.message}"
     false
   rescue SocketError => e

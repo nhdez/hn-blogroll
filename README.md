@@ -216,7 +216,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 For questions, suggestions, or issues:
 - Create an issue on GitHub
-- Contact: nelson@hernandez.id
+- Contact: nelson@datapolaris.com
 
 ---
 

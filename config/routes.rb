@@ -2,7 +2,11 @@ require 'sidekiq/web'
 
 Rails.application.routes.draw do
   devise_for :users
-  mount Sidekiq::Web => '/sidekiq'
+  
+  # Protect Sidekiq web UI with admin authentication
+  authenticate :user, ->(user) { user.admin? } do
+    mount Sidekiq::Web => '/sidekiq'
+  end
   
   root 'main#index'
   get 'random', to: 'main#random_redirect'

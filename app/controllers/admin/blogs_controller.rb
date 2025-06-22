@@ -1,4 +1,6 @@
 class Admin::BlogsController < ApplicationController
+  before_action :authenticate_user!
+  before_action :ensure_admin
   before_action :set_blog, only: [:show, :edit, :update, :approve, :reject, :refresh_posts, :check_status, :update_karma]
   
   def index

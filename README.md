@@ -146,6 +146,19 @@ Access the admin interface at `/admin` to:
 - View comprehensive statistics
 - Manage posts (view and delete if needed)
 
+**Security**: The admin interface is protected by Devise authentication. Create your first admin user using the rake task:
+
+```bash
+# Create admin user (uses ADMIN_EMAIL and ADMIN_PASSWORD env vars)
+rake admin:create
+
+# Or create with custom credentials
+ADMIN_EMAIL=admin@yourdomain.com ADMIN_PASSWORD=yourpassword rake admin:create
+
+# List all admin users
+rake admin:list
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -165,6 +178,10 @@ REDIS_URL=redis://localhost:6379/0
 # Rails
 RAILS_ENV=production
 SECRET_KEY_BASE=your_secret_key_base
+
+# Admin User Creation (for first setup)
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=your_secure_password
 ```
 
 ### Background Jobs
